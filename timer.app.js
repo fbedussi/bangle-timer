@@ -1,19 +1,21 @@
+let state = "unset"; // -> set -> started -> set
 let counter = 0;
+let setValue = 0;
 let counterInterval;
-let started = false;
 let buzzInterval;
 const APP_TITLE = "TIMER";
-const DEBOUNCE = 20;
+const DEBOUNCE = 500;
+
+function buzzAndBeep() {
+  Bangle.buzz(500, 1);
+  Bangle.beep(200, 4000);
+}
 
 function outOfTime() {
   if (counterInterval) return;
   E.showMessage("Out of Time\n\nBTN2 to reset", APP_TITLE);
-  Bangle.buzz();
-  Bangle.beep(200, 4000)
-    .then(() => new Promise(resolve => setTimeout(resolve, 200)))
-    .then(() => Bangle.beep(200, 3000));
-  // again, 10 secs later
-  buzzInterval = setTimeout(outOfTime, 10000);
+  buzzAndBeep();
+  buzzInterval = setInterval(buzzAndBeep, 10000);
 }
 
 function draw() {
@@ -22,7 +24,7 @@ function draw() {
   const seconds2Digits = seconds < 10 ? `0${seconds}` : seconds.toString();
   g.clear();
   g.setFontAlign(0, 0); // center font
-  g.setFont("Vector", 80); // vector font, 80px
+  g.setFont("Vector", 70); // vector font, 80px
   // draw the current counter value
   g.drawString(`${minutes}:${seconds2Digits}`, 120, 120);
   // optional - this keeps the watch LCD lit up
@@ -30,10 +32,13 @@ function draw() {
 }
 
 function countDown() {
+  console.log("counter", counter);
   // Out of time
   if (counter <= 0) {
-    if (counterInterval) clearInterval(counterInterval);
-    counterInterval = undefined;
+    if (counterInterval) {
+      clearInterval(counterInterval);
+      counterInterval = undefined;
+    }
     outOfTime();
     return;
   }
@@ -44,34 +49,16 @@ function countDown() {
 }
 
 function startTimer() {
+  console.log("start timer");
   countDown();
-  if (!counterInterval) counterInterval = setInterval(countDown, 1000);
-}
-
-function increaseTimer() {
-  if (!started) {
-    started = true;
-    startTimer();
-  }
-  counter += 5;
-  console.log("press", BTN5.read());
-  draw();
-  if (BTN5.read()) {
-    setTimeout(increaseTimer, DEBOUNCE);
+  console.log("counterInterval", counterInterval);
+  if (!counterInterval) {
+    counterInterval = setInterval(countDown, 1000);
   }
 }
 
-function decreaseTimer() {
-  counter = Math.max(0, counter - 5);
-  draw();
-  if (BTN4.read()) {
-    setTimeout(decreaseTimer, DEBOUNCE);
-  }
-}
-
-function clearTimer() {
-  counter = 0;
-  started = false;
+function stopTimer() {
+  console.log("stop timer");
   if (counterInterval) {
     clearInterval(counterInterval);
     counterInterval = undefined;
@@ -80,13 +67,68 @@ function clearTimer() {
     clearInterval(buzzInterval);
     buzzInterval = undefined;
   }
-  E.showMessage("Tap right, time UP\n\nleft time DOWN", APP_TITLE);
 }
 
-setWatch(decreaseTimer, BTN4, { repeat: true });
+function getDelta() {
+  if (counter < 30) {
+    return 1;
+  } else if (counter < 60) {
+    return 5;
+  } else {
+    return 10;
+  }
+}
 
-setWatch(increaseTimer, BTN5, { debounce: 0, repeat: true });
+function increaseTimer() {
+  counter += getDelta();
+  setValue = counter;
+  if (state === "unset") {
+    state = "set";
+  }
+  draw();
+  setTimeout(() => {
+    if (BTN5.read()) {
+      increaseTimer();
+    }
+  }, DEBOUNCE);
+}
 
-setWatch(clearTimer, BTN2, { repeat: true });
+function decreaseTimer() {
+  counter = Math.max(0, counter - getDelta());
+  setValue = counter;
+  draw();
+  setTimeout(() => {
+    if (BTN4.read()) {
+      decreaseTimer();
+    }
+  }, DEBOUNCE);
+}
 
-clearTimer();
+function reset(value) {
+  console.log("reset", value);
+  counter = value;
+  stopTimer();
+  draw();
+}
+
+function handleBtn2() {
+  console.log("state", state);
+  if (state === "unset") {
+    return;
+  } else if (state === "set") {
+    state = "started";
+    startTimer();
+  } else if (state === "started") {
+    state = "set";
+    reset(setValue);
+  }
+}
+
+setWatch(handleBtn2, BTN2, { debounce: 500 });
+
+/*setWatch(decreaseTimer, BTN4, { debounce: DEBOUNCE, repeat: false });
+
+setWatch(increaseTimer, BTN5, { debounce: DEBOUNCE, repeat: false });*/
+
+reset(0);
+E.showMessage("Tap right, time UP\n\nleft time DOWN", APP_TITLE);
