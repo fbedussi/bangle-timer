@@ -4,11 +4,12 @@ let setValue = 0;
 let counterInterval;
 let buzzInterval;
 const APP_TITLE = "TIMER";
-const DEBOUNCE = 500;
+const DEBOUNCE = 50;
 
 function buzzAndBeep() {
-  Bangle.buzz(500, 1);
-  Bangle.beep(200, 4000);
+  Bangle.buzz(1e3, 1).then(() => {
+    Bangle.beep(200, 4000);
+  });
 }
 
 function outOfTime() {
@@ -24,7 +25,7 @@ function draw() {
   const seconds2Digits = seconds < 10 ? `0${seconds}` : seconds.toString();
   g.clear();
   g.setFontAlign(0, 0); // center font
-  g.setFont("Vector", 70); // vector font, 80px
+  g.setFont("6x8", 8); // vector font, 80px
   // draw the current counter value
   g.drawString(`${minutes}:${seconds2Digits}`, 120, 120);
   // optional - this keeps the watch LCD lit up
@@ -124,11 +125,11 @@ function handleBtn2() {
   }
 }
 
-setWatch(handleBtn2, BTN2, { debounce: 500 });
+setWatch(handleBtn2, BTN2, { debounce: 500, repeat: true });
 
-/*setWatch(decreaseTimer, BTN4, { debounce: DEBOUNCE, repeat: false });
+setWatch(decreaseTimer, BTN4, { debounce: DEBOUNCE, repeat: true });
 
-setWatch(increaseTimer, BTN5, { debounce: DEBOUNCE, repeat: false });*/
+setWatch(increaseTimer, BTN5, { debounce: DEBOUNCE, repeat: true });
 
 reset(0);
 E.showMessage("Tap right, time UP\n\nleft time DOWN", APP_TITLE);
