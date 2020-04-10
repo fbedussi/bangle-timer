@@ -80,8 +80,9 @@ function getDelta() {
   }
 }
 
-function increaseTimer() {
-  counter += getDelta();
+function increaseTimer(d) {
+  const delta = typeof d === "number" ? d : getDelta();
+  counter += delta;
   setValue = counter;
   if (state === "unset") {
     state = "set";
@@ -94,8 +95,9 @@ function increaseTimer() {
   }, DEBOUNCE);
 }
 
-function decreaseTimer() {
-  counter = Math.max(0, counter - getDelta());
+function decreaseTimer(d) {
+  const delta = typeof d === "number" ? d : getDelta();
+  counter = Math.max(0, counter - delta);
   setValue = counter;
   draw();
   setTimeout(() => {
@@ -125,11 +127,14 @@ function handleBtn2() {
   }
 }
 
-setWatch(handleBtn2, BTN2, { debounce: 500, repeat: true });
+setWatch(handleBtn2, BTN2, { debounce: 500, repeat: true, edge: "falling" });
 
 setWatch(decreaseTimer, BTN4, { debounce: DEBOUNCE, repeat: true });
 
 setWatch(increaseTimer, BTN5, { debounce: DEBOUNCE, repeat: true });
 
+setWatch(() => decreaseTimer(1), BTN1, { debounce: DEBOUNCE, repeat: true });
+
+setWatch(() => increaseTimer(1), BTN3, { debounce: DEBOUNCE, repeat: true });
 reset(0);
 E.showMessage("Tap right, time UP\n\nleft time DOWN", APP_TITLE);
