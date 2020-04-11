@@ -3,6 +3,9 @@ let counter = 0;
 let setValue = 0;
 let counterInterval;
 let buzzInterval;
+let btn4WatchId;
+let btn5WatchId;
+
 const APP_TITLE = "TIMER";
 const DEBOUNCE = 50;
 
@@ -14,9 +17,9 @@ function buzzAndBeep() {
 
 function outOfTime() {
   if (counterInterval) return;
-  E.showMessage("Out of Time\n\nBTN2 to reset", APP_TITLE);
+  E.showMessage("Time's up\n\nBTN2 to reset", APP_TITLE);
   buzzAndBeep();
-  buzzInterval = setInterval(buzzAndBeep, 10000);
+  buzzInterval = setInterval(buzzAndBeep, 5000);
 }
 
 function draw() {
@@ -33,8 +36,6 @@ function draw() {
 }
 
 function countDown() {
-  console.log("counter", counter);
-  // Out of time
   if (counter <= 0) {
     if (counterInterval) {
       clearInterval(counterInterval);
@@ -50,16 +51,14 @@ function countDown() {
 }
 
 function startTimer() {
-  console.log("start timer");
-  countDown();
-  console.log("counterInterval", counterInterval);
   if (!counterInterval) {
+    stopTouchWatch();
+    countDown();
     counterInterval = setInterval(countDown, 1000);
   }
 }
 
-function stopTimer() {
-  console.log("stop timer");
+function clearIntervals() {
   if (counterInterval) {
     clearInterval(counterInterval);
     counterInterval = undefined;
@@ -108,14 +107,13 @@ function decreaseTimer(d) {
 }
 
 function reset(value) {
-  console.log("reset", value);
   counter = value;
-  stopTimer();
+  setTouchWatch();
+  clearIntervals();
   draw();
 }
 
 function handleBtn2() {
-  console.log("state", state);
   if (state === "unset") {
     return;
   } else if (state === "set") {
@@ -127,14 +125,28 @@ function handleBtn2() {
   }
 }
 
+function setTouchWatch() {
+  btn4WatchId = setWatch(decreaseTimer, BTN4, { debounce: DEBOUNCE, repeat: true });
+  btn5WatchId = setWatch(increaseTimer, BTN5, { debounce: DEBOUNCE, repeat: true });
+}
+
+function stopTouchWatch() {
+  if (btn4WatchId) {
+    clearWatch(btn4WatchId);
+    btn4WatchId = undefined;
+  }
+  if (btn5WatchId) {
+    clearWatch(btn5WatchId);
+    btn5WatchId = undefined;
+  }
+}
+
 setWatch(handleBtn2, BTN2, { debounce: 500, repeat: true, edge: "falling" });
-
-setWatch(decreaseTimer, BTN4, { debounce: DEBOUNCE, repeat: true });
-
-setWatch(increaseTimer, BTN5, { debounce: DEBOUNCE, repeat: true });
 
 setWatch(() => decreaseTimer(1), BTN1, { debounce: DEBOUNCE, repeat: true });
 
 setWatch(() => increaseTimer(1), BTN3, { debounce: DEBOUNCE, repeat: true });
+
 reset(0);
+
 E.showMessage("Tap right, time UP\n\nleft time DOWN", APP_TITLE);
