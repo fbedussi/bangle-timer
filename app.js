@@ -141,6 +141,7 @@ function stopTouchWatch() {
   }
 }
 
+
 setWatch(handleBtn2, BTN2, { debounce: 500, repeat: true, edge: "falling" });
 
 setWatch(() => decreaseTimer(1), BTN1, { debounce: DEBOUNCE, repeat: true });

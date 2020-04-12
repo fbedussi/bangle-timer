@@ -1,0 +1,32 @@
+{
+  "name": "bangle-timer",
+  "version": "0.01.00",
+  "description": "A simple timer for bangle.js smart watch",
+  "main": "timer.app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "./node_modules/.bin/minify app.js > app.min.js",
+    "copy": "cp app.min.js ../BangleApps/apps/timer/app.js && cp app-icon.js ../BangleApps/apps/timer && cp app.png ../BangleApps/apps/timer && cp ChangeLog ../BangleApps/apps/timer",
+    "publish": "npm run build && npm run copy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fbedussi/bangle-timer.git"
+  },
+  "keywords": [
+    "bangle.js",
+    "timer"
+  ],
+  "author": "Francesco Bedussi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fbedussi/bangle-timer/issues"
+  },
+  "homepage": "https://github.com/fbedussi/bangle-timer#readme",
+  "dependencies": {
+    "uglify-js": "^3.8.1"
+  },
+  "devDependencies": {
+    "minify": "^5.1.1"
+  }
+}
